@@ -72,6 +72,20 @@ class GrowrAgent {
     }
     return this.instance
   }
+
+  async verifyCredentials(pondAddress, userCredentials) {
+    if (!this.instance) {
+      throw new Error('Should create instance first')
+    }
+    await this.instance.VC.verifyCredentials(pondAddress, userCredentials, this.instance)
+  }
+
+  async registerVerification(did, pondAddress, validity = 60 * 60) {
+    if (!this.instance) {
+      throw new Error('Should create instance first')
+    }
+    await this.instance.VC.registerVerification(did, pondAddress, validity, this.instance)
+  }
 }
 
 module.exports = { GrowrAgent }
