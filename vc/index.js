@@ -7,6 +7,7 @@ const PondABI = require('../abis/Pond.json')
 class VC {
   #identity
   #resolver
+  #create
 
   constructor(identity, resolver) {
     this.#identity = identity
@@ -77,7 +78,7 @@ class VC {
       return { names, contents }
     }
 
-    const Pond = new ethers.Contract(pondAddress, PondABI, instance.#provider);
+    const Pond = new ethers.Contract(pondAddress, PondABI, instance.provider);
     const criteriaNames = await Pond.getCriteriaNames();
     if (!userHasMatchingCredentials(userCredentials, criteriaNames)) { throw new Error('User credentials does not match pond requirements') }
     const userCredentialValues = createUserCredentialValues(userCredentials)
@@ -86,7 +87,7 @@ class VC {
 
   async registerVerification(did, pondAddress, validity = 60 * 60, instance) {
     console.log(`=== Granting access to pond ${pondAddress} for user ${did}`)
-    const VerificationRegistry = new ethers.Contract(VerificationRegistryAddress, VerificationRegistryABI, instance.#provider)
+    const VerificationRegistry = new ethers.Contract(VerificationRegistryAddress, VerificationRegistryABI, instance.provider)
     const didAddress = await getAddressFromDid(did)
     try {
       const tx = await VerificationRegistry.connect(instance.wallet).registerVerification(didAddress, pondAddress, validity);

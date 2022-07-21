@@ -42,6 +42,8 @@ class GrowrAgent {
     return this
   }
 
+
+
   async #connectNetwork(networkConfig) {
     try {
       this.#provider = await (new ethers.providers.JsonRpcProvider(networkConfig.uri, networkConfig.options))
@@ -53,6 +55,16 @@ class GrowrAgent {
     }
   }
 
+
+  static async createWallet(networkConfig = defaultNetworkConfig) {
+    const provider = await (new ethers.providers.JsonRpcProvider(networkConfig.uri, networkConfig.options))
+    const wallet = ethers.Wallet.createRandom().connect(provider)
+    return wallet
+  }
+
+  getProvider() {
+    return this.#provider
+  }
 
   static async getInstance({
     providerConfig,
@@ -69,6 +81,7 @@ class GrowrAgent {
       await this.instance.#connectNetwork(networkConfig)
       this.instance.wallet = this.instance.#wallet
       this.instance.address = this.instance.wallet.address
+      this.instance.provider = this.getProvider()
     }
     return this.instance
   }
