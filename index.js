@@ -32,7 +32,6 @@ class GrowrAgent {
   constructor(config) {
     this.#createResolver(config.providerConfig)
     this.Did = new Did(this.didResolver)
-    // this.#connectNetwork(config.networkConfig)
     return this
   }
 
@@ -66,6 +65,13 @@ class GrowrAgent {
     return this.#provider
   }
 
+  static async getDid({ providerConfig = defaultProviderConfig, didConfig = defaultDidConfig }) {
+    const agent = new GrowrAgent({ providerConfig })
+    agent.identity = await agent.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
+    return agent.identity
+
+  }
+
   static async getInstance({
     providerConfig,
     didConfig,
@@ -75,7 +81,7 @@ class GrowrAgent {
       networkConfig: defaultNetworkConfig
     }) {
     if (!this.instance) {
-      this.instance = new GrowrAgent({ providerConfig, networkConfig })
+      this.instance = new GrowrAgent({ providerConfig })
       this.instance.identity = await this.instance.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
       this.instance.VC = new VC(this.instance.identity, this.instance.didResolver)
       await this.instance.#connectNetwork(networkConfig)
