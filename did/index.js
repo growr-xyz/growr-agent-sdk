@@ -14,7 +14,7 @@ class Did {
     return this
   }
 
-  createIdentity(privateKey, networkName) {
+  createIdentity(privateKey, networkName = 'rsk:testnet') {
     return (networkName === 'rsk:testnet' ? rskTestnetDIDFromPrivateKey()(privateKey) : rskDIDFromPrivateKey()(privateKey))
   }
 
