@@ -17,8 +17,8 @@
   },
   "homepage": "https://github.com/growr-xyz/growr-agent-sdk#readme",
   "dependencies": {
-    "@growr/vc-json-schemas": "^1.3.0",
-    "@growr/vc-json-schemas-parser": "^2.0.0",
+    "@growr/vc-json-schemas": "^1.4.0",
+    "@growr/vc-json-schemas-parser": "^2.1.0",
     "@rsksmart/rif-id-ethr-did": "^0.1.0",
     "crypto-js": "^4.1.1",
     "daf-selective-disclosure": "^6.0.0",

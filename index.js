@@ -43,10 +43,10 @@ class GrowrAgent {
 
 
 
-  async #connectNetwork(networkConfig) {
+  async #connectNetwork(networkConfig, privateKey = process.env.GASDK_PRIVATE_KEY) {
     try {
       this.#provider = await (new ethers.providers.JsonRpcProvider(networkConfig.uri, networkConfig.options))
-      this.#wallet = await (new ethers.Wallet(process.env.GASDK_PRIVATE_KEY, this.#provider))
+      this.#wallet = await (new ethers.Wallet(privateKey, this.#provider))
       this.address = this.#wallet.address
     } catch (e) {
       console.error(e)
@@ -73,21 +73,17 @@ class GrowrAgent {
   }
 
   static async getInstance({
-    providerConfig,
-    didConfig,
-    networkConfig } = {
-      providerConfig: defaultProviderConfig,
-      didConfig: defaultDidConfig,
-      networkConfig: defaultNetworkConfig
-    }) {
+    providerConfig = defaultProviderConfig,
+    didConfig = defaultDidConfig,
+    networkConfig = defaultNetworkConfig }) {
     if (!this.instance) {
       this.instance = new GrowrAgent({ providerConfig })
       this.instance.identity = await this.instance.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
-      this.instance.VC = new VC(this.instance.identity, this.instance.didResolver)
-      await this.instance.#connectNetwork(networkConfig)
+      await this.instance.#connectNetwork(networkConfig, didConfig.privateKey)
       this.instance.wallet = this.instance.#wallet
       this.instance.address = this.instance.wallet.address
-      this.instance.provider = this.getProvider()
+      this.instance.provider = this.instance.getProvider()
+      this.instance.VC = new VC(this.instance.identity, this.instance.didResolver, this.instance.provider, this.instance.wallet)
     }
     return this.instance
   }
