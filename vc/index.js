@@ -7,11 +7,15 @@ const PondABI = require('../abis/Pond.json')
 class VC {
   #identity
   #resolver
+  #wallet
+  #provider
   #create
 
-  constructor(identity, resolver) {
+  constructor(identity, resolver, provider, wallet) {
     this.#identity = identity
     this.#resolver = resolver
+    this.#provider = provider
+    this.#wallet = wallet
     this.#create = require('./generator')
     return this
   }
@@ -97,7 +101,40 @@ class VC {
       throw e
     }
   }
+
+  async createPresentation(jwt) {
+    const signer = this.#provider.getSigner(this.#wallet.address);
+
+    const vpPayload = {
+      vp: {
+        '@context': ['https://www.w3.org/2018/credentials/v1'],
+        type: ['VerifiablePresentation'],
+        verifiableCredential: [jwt], // TODO: To support more than one credential, we should change jwt to jwts (array of JWTs)
+        nbf: Math.floor(new Date().getTime() / 1000),
+        exp: Math.floor(new Date().getTime() / 1000) + 3600
+      }
+    };
+
+    const signerFunction = async (data) => {
+      const hexData = await signer.signMessage(data);
+      const sig = ethers.utils.splitSignature(hexData);
+      const { v, r, s } = sig;
+      const result = {
+        r: r.split('0x')[1],
+        s: s.split('0x')[1],
+        recoveryParam: v
+      };
+      return result;
+    };
+
+    // const ethrDid = new EthrDID({address: account, method: 'ethr:rsk:testnet', provider, signer: signerFunction});
+    // console.log('ethrDid', ethrDid);
+    return createJWT(vpPayload, { alg: 'ES256K', issuer: this.#identity.did, signer: signerFunction })
+  };
+
 }
+
+
 
 module.exports = { VC }
 
