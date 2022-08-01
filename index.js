@@ -72,6 +72,21 @@ class GrowrAgent {
 
   }
 
+  static async getAgent({
+    providerConfig = defaultProviderConfig,
+    didConfig = defaultDidConfig,
+    networkConfig = defaultNetworkConfig
+  }) {
+    const agent = new GrowrAgent({ providerConfig })
+    agent.identity = await agent.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
+    await agent.#connectNetwork(networkConfig, didConfig.privateKey)
+    agent.wallet = agent.#wallet
+    agent.address = agent.wallet.address
+    agent.provider = agent.getProvider()
+    agent.VC = new VC(agent.identity, agent.didResolver, agent.provider, agent.wallet)
+    return agent
+  }
+
   static async getInstance({
     providerConfig = defaultProviderConfig,
     didConfig = defaultDidConfig,

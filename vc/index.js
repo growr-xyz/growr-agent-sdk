@@ -1,4 +1,5 @@
 const { verifyJWT } = require('jesse-did-jwt')
+const { createVerifiableCredentialJwt } = require('did-jwt-vc')
 const { parseVerifiableCredential } = require('@growr/vc-json-schemas-parser')
 const { getTemplate } = require('@growr/vc-json-schemas/util')
 const { ethers } = require('ethers')
@@ -31,8 +32,8 @@ class VC {
     return createVerifiableCredentialJwt(payload, this.#identity)
   }
 
-  async issueVC(did, subject, template) {
-    return this.createVC(did, subject, template)
+  async issueVC(did, subject, type) {
+    return this.createVC(did, subject, type)
   }
 
   parseCredential(type, payload) {
