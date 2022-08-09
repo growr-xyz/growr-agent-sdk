@@ -81,6 +81,7 @@ class GrowrAgent {
     agent.identity = await agent.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
     await agent.#connectNetwork(networkConfig, didConfig.privateKey)
     agent.wallet = agent.#wallet
+    agent.did = agent.identity.did.toLowerCase()
     agent.address = agent.wallet.address
     agent.provider = agent.getProvider()
     agent.VC = new VC(agent.identity, agent.didResolver, agent.provider, agent.wallet)

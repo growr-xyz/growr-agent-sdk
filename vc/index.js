@@ -128,8 +128,6 @@ class VC {
       return result;
     };
 
-    // const ethrDid = new EthrDID({address: account, method: 'ethr:rsk:testnet', provider, signer: signerFunction});
-    // console.log('ethrDid', ethrDid);
     return createJWT(vpPayload, { alg: 'ES256K', issuer: this.#identity.did, signer: signerFunction })
   };
 
