@@ -41,11 +41,12 @@ class VC {
   }
 
 
-  async getCredentials(did, vps) {
+  async getCredentials(did, vp) {
     const vpsDecodePromises = []
-    vps.forEach(vp => vpsDecodePromises.push(this.verifyVerifiableJwt(vp)))
-    const verified = await Promise.all(vpsDecodePromises).catch(e => { throw e })
-    const vcValues = verified.map(v => v.payload.vp.verifiableCredential)
+    // vps.forEach(vp => vpsDecodePromises.push(this.verifyVerifiableJwt(vp)))
+    // const verified = await Promise.all(vpsDecodePromises).catch(e => { throw e })
+    const verified = await this.verifyVerifiableJwt(vp).catch(e => { throw e })
+    const vcValues = verified.payload.vp.verifiableCredential
     const vcsDecodePromises = []
     vcValues.forEach(vc => vcsDecodePromises.push(this.verifyVerifiableJwt(vc[0], false)))
     const credentials = await Promise.all(vcsDecodePromises).catch(e => { throw e })
@@ -54,6 +55,14 @@ class VC {
       // if (cr.payload.subject !== did) throw new Error('DID and VC subject do not match')
       return this.parseCredential(cr.payload.vc.type[1], cr.payload.vc)
     })
+    return parsedCredentials
+  }
+
+  async decodeCredential(vc) {
+    const cr = await this.verifyVerifiableJwt(vc, false)
+    // if (cr.payload.iss !== issuer.issuer.did) throw new Error('Issuer unknown')
+    // if (cr.payload.sub !== did) throw new Error('DID and VC subject do not match')
+    const parsedCredentials = this.parseCredential(cr.payload.vc.type[1], cr.payload.vc)
     return parsedCredentials
   }
 
@@ -103,18 +112,18 @@ class VC {
     }
   }
 
-  async createPresentation(jwt) {
+  async createPresentation(jwts) {
     const signer = this.#provider.getSigner(this.#wallet.address);
 
     const vpPayload = {
       vp: {
         '@context': ['https://www.w3.org/2018/credentials/v1'],
         type: ['VerifiablePresentation'],
-        verifiableCredential: [jwt], // TODO: To support more than one credential, we should change jwt to jwts (array of JWTs)
+        verifiableCredential: jwts, // TODO: To support more than one credential, we should change jwt to jwts (array of JWTs)
         nbf: Math.floor(new Date().getTime() / 1000),
         exp: Math.floor(new Date().getTime() / 1000) + 3600
       }
-    };
+    }
 
     const signerFunction = async (data) => {
       const hexData = await signer.signMessage(data);
@@ -129,7 +138,24 @@ class VC {
     };
 
     return createJWT(vpPayload, { alg: 'ES256K', issuer: this.#identity.did, signer: signerFunction })
+  }
+
+  parseJwt(token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+    // var jsonPayload = decodeURIComponent(Buffer.from(base64, 'base64').split('').map(function(c) {
+    //   return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    // }).join(''));
+
+    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
   };
+
+
 
 }
 

@@ -1,75 +1,53 @@
 [
 	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_verificationRegistry",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_wrbtc",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
+				"indexed": false,
 				"internalType": "address",
-				"name": "previousOwner",
+				"name": "addr",
 				"type": "address"
 			},
 			{
-				"indexed": true,
+				"indexed": false,
 				"internalType": "address",
-				"name": "newOwner",
+				"name": "owner",
 				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
 			}
 		],
-		"name": "OwnershipTransferred",
+		"name": "PondCreated",
 		"type": "event"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_verifier",
-				"type": "address"
-			}
-		],
-		"name": "addVerifier",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "getVerificationRecord",
+		"inputs": [],
+		"name": "WRBTC",
 		"outputs": [
 			{
 				"internalType": "address",
-				"name": "_verifier",
+				"name": "",
 				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_object",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_subject",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_createdAt",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_expiryAt",
-				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -78,27 +56,111 @@
 	{
 		"inputs": [
 			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "contract ERC20",
+						"name": "token",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "minLoanAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "maxLoanAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "minLoanDuration",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "maxLoanDuration",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "annualInterestRate",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "disbursmentFee",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "cashBackRate",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct Types.PondParams",
+				"name": "_params",
+				"type": "tuple"
+			},
+			{
+				"components": [
+					{
+						"internalType": "string[]",
+						"name": "names",
+						"type": "string[]"
+					},
+					{
+						"internalType": "string[]",
+						"name": "types",
+						"type": "string[]"
+					},
+					{
+						"internalType": "string[]",
+						"name": "contents",
+						"type": "string[]"
+					},
+					{
+						"internalType": "string[]",
+						"name": "operators",
+						"type": "string[]"
+					}
+				],
+				"internalType": "struct Types.PondCriteriaInput",
+				"name": "_criteria",
+				"type": "tuple"
+			}
+		],
+		"name": "createPond",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "address",
-				"name": "",
+				"name": "pondAddress",
 				"type": "address"
 			}
 		],
-		"name": "getVerifier",
+		"name": "destroyPond",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllPonds",
 		"outputs": [
 			{
-				"internalType": "address",
-				"name": "_verifier",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_createdAt",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "_exists",
-				"type": "bool"
+				"internalType": "contract Pond[]",
+				"name": "",
+				"type": "address[]"
 			}
 		],
 		"stateMutability": "view",
@@ -106,7 +168,131 @@
 	},
 	{
 		"inputs": [],
-		"name": "getVerifiersCount",
+		"name": "getAllPondsLength",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "getPond",
+		"outputs": [
+			{
+				"internalType": "contract Pond",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "getPondId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "getUserPond",
+		"outputs": [
+			{
+				"internalType": "contract Pond",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "getUserPondId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getUserPonds",
+		"outputs": [
+			{
+				"internalType": "contract Pond[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getUserPondsLength",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -119,110 +305,12 @@
 	},
 	{
 		"inputs": [],
-		"name": "owner",
+		"name": "verificationRegistry",
 		"outputs": [
 			{
 				"internalType": "address",
 				"name": "",
 				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_subject",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_object",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_validity",
-				"type": "uint256"
-			}
-		],
-		"name": "registerVerification",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_verifier",
-				"type": "address"
-			}
-		],
-		"name": "removeVerifier",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_subject",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_object",
-				"type": "address"
-			}
-		],
-		"name": "revokeVerification",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_subject",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_object",
-				"type": "address"
-			}
-		],
-		"name": "validateVerification",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
 			}
 		],
 		"stateMutability": "view",

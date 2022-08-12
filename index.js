@@ -4,7 +4,7 @@ const { Resolver } = require('did-resolver')
 const { getResolver } = require('ethr-did-resolver')
 const { Did } = require('./did')
 const { VC } = require('./vc')
-
+const { Helpers } = require('./utils/helpers')
 const defaultProviderConfig = {
   networks: [
     { name: 'rsk:testnet', rpcUrl: 'https://did.testnet.rsk.co:4444', registry: '0xdca7ef03e98e0dc2b855be647c39abe984fcf21b' },
@@ -92,16 +92,23 @@ class GrowrAgent {
     providerConfig = defaultProviderConfig,
     didConfig = defaultDidConfig,
     networkConfig = defaultNetworkConfig }) {
-    if (!this.instance) {
-      this.instance = new GrowrAgent({ providerConfig })
-      this.instance.identity = await this.instance.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
-      await this.instance.#connectNetwork(networkConfig, didConfig.privateKey)
-      this.instance.wallet = this.instance.#wallet
-      this.instance.address = this.instance.wallet.address
-      this.instance.provider = this.instance.getProvider()
-      this.instance.VC = new VC(this.instance.identity, this.instance.didResolver, this.instance.provider, this.instance.wallet)
+
+    try {
+      if (!this.instance) {
+        this.instance = new GrowrAgent({ providerConfig })
+        this.instance.identity = await this.instance.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
+        await this.instance.#connectNetwork(networkConfig, didConfig.privateKey)
+        this.instance.wallet = this.instance.#wallet
+        this.instance.did = this.instance.identity.did.toLowerCase()
+
+        this.instance.address = this.instance.wallet.address
+        this.instance.provider = this.instance.getProvider()
+        this.instance.VC = new VC(this.instance.identity, this.instance.didResolver, this.instance.provider, this.instance.wallet)
+      }
+      return this.instance
+    } catch (e) {
+      throw e
     }
-    return this.instance
   }
 
   async verifyCredentials(pondAddress, userCredentials) {
@@ -116,6 +123,14 @@ class GrowrAgent {
       throw new Error('Should create instance first')
     }
     await this.instance.VC.registerVerification(did, pondAddress, validity, this.instance)
+  }
+
+  async getBestOffer(amount, duration, credentials) {
+    return await Helpers.findBestOffer(this.provider, this.address, { amount, duration, credentials })
+  }
+
+  async getPondCriteriaNames(pondAddress) {
+    return await Helpers.getPondCriteriaNames(this.provider, this.address, { pondAddress })
   }
 }
 
