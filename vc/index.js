@@ -1,10 +1,12 @@
 const { verifyJWT } = require('jesse-did-jwt')
-const { createVerifiableCredentialJwt } = require('did-jwt-vc')
+const { transformCredentialInput, validateJwtCredentialPayload } = require('did-jwt-vc')
 const { parseVerifiableCredential } = require('@growr/vc-json-schemas-parser')
 const { getTemplate } = require('@growr/vc-json-schemas/util')
 const { ethers } = require('ethers')
 const PondABI = require('../abis/Pond.json')
-
+const { createJWT } = require('did-jwt')
+const VerificationRegistryAddress = process.env.NEXT_PUBLIC_VERIFICATION_REGISTRY_CONTRACT
+const VerificationRegistryABI = require('../abis/VerificationRegistry.json')
 class VC {
   #identity
   #resolver
@@ -29,7 +31,30 @@ class VC {
   async createVC(did, subject, type) {
     const template = getTemplate(type)
     const payload = template(did, subject)
-    return createVerifiableCredentialJwt(payload, this.#identity)
+    const signer = this.#wallet;
+
+
+    const parsedPayload = {
+      iat: undefined,
+      ...transformCredentialInput(payload),
+    }
+    validateJwtCredentialPayload(parsedPayload)
+
+    const signerFunction = async (data) => {
+      const hexData = await signer.signMessage(data);
+      const sig = ethers.utils.splitSignature(hexData);
+      const { v, r, s } = sig;
+      const result = {
+        r: r.split('0x')[1],
+        s: s.split('0x')[1],
+        recoveryParam: v
+      };
+      return result;
+    };
+
+    return createJWT(parsedPayload, { alg: 'ES256K', issuer: this.#identity.did, signer: signerFunction })
+
+    // return createVerifiableCredentialJwt(payload, this.#identity)
   }
 
   async issueVC(did, subject, type) {
@@ -48,7 +73,7 @@ class VC {
     const verified = await this.verifyVerifiableJwt(vp).catch(e => { throw e })
     const vcValues = verified.payload.vp.verifiableCredential
     const vcsDecodePromises = []
-    vcValues.forEach(vc => vcsDecodePromises.push(this.verifyVerifiableJwt(vc[0], false)))
+    vcValues.forEach(vc => vcsDecodePromises.push(this.verifyVerifiableJwt(vc)))
     const credentials = await Promise.all(vcsDecodePromises).catch(e => { throw e })
     const parsedCredentials = credentials.map(cr => {
       // if (cr.payload.iss !== issuer.issuer.did) throw new Error('Issuer unknown')
@@ -59,14 +84,14 @@ class VC {
   }
 
   async decodeCredential(vc) {
-    const cr = await this.verifyVerifiableJwt(vc, false)
+    const cr = await this.verifyVerifiableJwt(vc)
     // if (cr.payload.iss !== issuer.issuer.did) throw new Error('Issuer unknown')
     // if (cr.payload.sub !== did) throw new Error('DID and VC subject do not match')
     const parsedCredentials = this.parseCredential(cr.payload.vc.type[1], cr.payload.vc)
     return parsedCredentials
   }
 
-  async verifyCredentials(pondAddress, userCredentials, instance) {
+  async verifyCredentials(pondAddress, userCredentials) {
 
     const decapitalizeFirstLetter = (text) => {
       return text && text[0].toLowerCase() + text.slice(1) || text
@@ -92,19 +117,17 @@ class VC {
       return { names, contents }
     }
 
-    const Pond = new ethers.Contract(pondAddress, PondABI, instance.provider);
+    const Pond = new ethers.Contract(pondAddress, PondABI, this.#provider);
     const criteriaNames = await Pond.getCriteriaNames();
     if (!userHasMatchingCredentials(userCredentials, criteriaNames)) { throw new Error('User credentials does not match pond requirements') }
     const userCredentialValues = createUserCredentialValues(userCredentials)
     return await Pond.verifyCredentials(userCredentialValues);
   }
 
-  async registerVerification(did, pondAddress, validity = 60 * 60, instance) {
-    console.log(`=== Granting access to pond ${pondAddress} for user ${did}`)
-    const VerificationRegistry = new ethers.Contract(VerificationRegistryAddress, VerificationRegistryABI, instance.provider)
-    const didAddress = await getAddressFromDid(did)
+  async registerVerification(address, pondAddress, validity = 60 * 60) {
+    const VerificationRegistry = new ethers.Contract(VerificationRegistryAddress, VerificationRegistryABI, this.#provider)
     try {
-      const tx = await VerificationRegistry.connect(instance.wallet).registerVerification(didAddress, pondAddress, validity);
+      const tx = await VerificationRegistry.connect(this.#wallet).registerVerification(address, pondAddress, validity);
       return tx.wait();
     } catch (e) {
       console.error(e)
@@ -113,7 +136,8 @@ class VC {
   }
 
   async createPresentation(jwts) {
-    const signer = this.#provider.getSigner(this.#wallet.address);
+
+    const signer = this.#wallet;
 
     const vpPayload = {
       vp: {
