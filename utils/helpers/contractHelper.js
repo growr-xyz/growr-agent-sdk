@@ -23,12 +23,6 @@ const PondFactoryAddress = process.env.NEXT_PUBLIC_POND_FACTORY_CONTRACT;
 // const WRBTCAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 // console.log(process.env);
-console.log(
-  "Addresses",
-  xUSDAddress,
-  VerificationRegistryAddress,
-  PondFactoryAddress
-);
 
 exports.findBestOffer = async (
   provider,

@@ -13,13 +13,15 @@ class VC {
   #wallet
   #provider
   #create
+  #did
 
-  constructor(identity, resolver, provider, wallet) {
+  constructor(identity, resolver, provider, wallet, did) {
     this.#identity = identity
     this.#resolver = resolver
     this.#provider = provider
     this.#wallet = wallet
     this.#create = require('./generator')
+    this.#did = did
     return this
   }
   verifyVerifiableJwt(jwt, ethSign = true) {
@@ -52,7 +54,7 @@ class VC {
       return result;
     };
 
-    return createJWT(parsedPayload, { alg: 'ES256K', issuer: this.#identity.did, signer: signerFunction })
+    return createJWT(parsedPayload, { alg: 'ES256K', issuer: this.#did, signer: signerFunction })
 
     // return createVerifiableCredentialJwt(payload, this.#identity)
   }

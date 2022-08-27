@@ -85,7 +85,7 @@ class GrowrAgent {
     agent.did = agent.identity.did.toLowerCase()
     agent.address = agent.wallet.address
     agent.provider = agent.getProvider()
-    agent.VC = new VC(agent.identity, agent.didResolver, agent.provider, agent.wallet)
+    agent.VC = new VC(agent.identity, agent.didResolver, agent.provider, agent.wallet, agent.did)
     return agent
   }
 
@@ -103,7 +103,7 @@ class GrowrAgent {
         this.instance.did = this.instance.identity.did.toLowerCase()
         this.instance.address = this.instance.wallet.address
         this.instance.provider = this.instance.getProvider()
-        this.instance.VC = new VC(this.instance.identity, this.instance.didResolver, this.instance.provider, this.instance.wallet)
+        this.instance.VC = new VC(this.instance.identity, this.instance.didResolver, this.instance.provider, this.instance.wallet, this.instance.did)
       }
       return this.instance
     } catch (e) {
