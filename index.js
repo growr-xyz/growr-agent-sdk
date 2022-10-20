@@ -132,6 +132,10 @@ class GrowrAgent {
   async getPondCriteriaNames(pondAddress) {
     return await Helpers.getPondCriteriaNames(this.provider, this.address, { pondAddress })
   }
+
+  async borrow(amount, duration, pondAddress) {
+    return await Helpers.borrow(this.provider, this.address, { amount, duration, pondAddress })
+  }
 }
 
 module.exports = { GrowrAgent }
