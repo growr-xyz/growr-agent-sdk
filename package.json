@@ -1,6 +1,6 @@
 {
   "name": "growr-agent-sdk",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Growr SSFI Agent for common building blocks for DID, VC and Wallet operation in the Growr protocol",
   "main": "index.js",
   "scripts": {
