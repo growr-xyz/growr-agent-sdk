@@ -5,6 +5,8 @@ const { getResolver } = require('ethr-did-resolver')
 const { Did } = require('./did')
 const { VC } = require('./vc')
 const { Helpers } = require('./utils/helpers')
+const PondABI = require('./abis/Pond.json')
+
 const defaultProviderConfig = {
   networks: [
     { name: 'rsk:testnet', rpcUrl: 'https://did.testnet.rsk.co:4444', registry: '0xdca7ef03e98e0dc2b855be647c39abe984fcf21b' },
@@ -133,9 +135,18 @@ class GrowrAgent {
     return await Helpers.getPondCriteriaNames(this.provider, this.address, { pondAddress })
   }
 
-  async borrow(amount, duration, pondAddress) {
-    return await Helpers.borrow(this.provider, this.address, { amount, duration, pondAddress })
+  async getLoan(amnt, d, pondAddress) {
+    const amount = ethers.utils.parseEther(amnt) //
+    const duration = Number(d)
+    return await this.borrow( amount, duration, pondAddress)
   }
+
+  async borrow(amount, duration, pondAddress) {
+    const Pond = new ethers.Contract(pondAddress, PondABI, this.#provider)
+    const tx = await Pond.connect(this.#wallet).borrow(amount, duration)
+    return tx.wait()    
+  }
+
 }
 
 module.exports = { GrowrAgent }

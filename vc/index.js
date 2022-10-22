@@ -126,7 +126,7 @@ class VC {
     return await Pond.verifyCredentials(userCredentialValues);
   }
 
-  async registerVerification(address, pondAddress, validity = 60 * 60) {
+  async registerVerification(address, pondAddress, validity = 60 * 60 * 10000) {
     const VerificationRegistry = new ethers.Contract(VerificationRegistryAddress, VerificationRegistryABI, this.#provider)
     try {
       const tx = await VerificationRegistry.connect(this.#wallet).registerVerification(address, pondAddress, validity);
