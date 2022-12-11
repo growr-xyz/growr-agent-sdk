@@ -1,6 +1,6 @@
 {
   "name": "growr-agent-sdk",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Growr SSFI Agent for common building blocks for DID, VC and Wallet operation in the Growr protocol",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/growr-xyz/growr-agent-sdk#readme",
   "dependencies": {
-    "@growr/vc-json-schemas": "^1.6.1",
+    "@growr/vc-json-schemas": "^1.6.2",
     "@growr/vc-json-schemas-parser": "^2.3.1",
     "@rsksmart/rif-id-ethr-did": "^0.1.0",
     "crypto-js": "^4.1.1",
