@@ -5,22 +5,36 @@ const { getResolver } = require('ethr-did-resolver')
 const { Did } = require('./did')
 const { VC } = require('./vc')
 const { Helpers } = require('./utils/helpers')
+const { Listener } = require('./utils/helpers/listener')
+
+
 const PondABI = require('./abis/Pond.json')
 
 const defaultProviderConfig = {
-  networks: [
-    { name: 'rsk:testnet', rpcUrl: 'https://did.testnet.rsk.co:4444', registry: '0xdca7ef03e98e0dc2b855be647c39abe984fcf21b' },
-    { name: 'rsk', rpcUrl: 'https://did.rsk.co:4444', registry: '0xdca7ef03e98e0dc2b855be647c39abe984fcf21b' },
-  ]
+  networks: [{
+    name: 'rsk:testnet',
+    rpcUrl: 'https://did.testnet.rsk.co:4444',
+    registry: '0xdca7ef03e98e0dc2b855be647c39abe984fcf21b'
+  }, {
+    name: 'rsk',
+    rpcUrl: 'https://did.rsk.co:4444',
+    registry: '0xdca7ef03e98e0dc2b855be647c39abe984fcf21b'
+  }]
+}
+
+const wsProviderDefaultConfig = {
+  'rsk:testnet': 'wss://public-node.testnet.rsk.co/websocket',
+  'rsk': 'wss://public-node.rsk.co/websocket'
 }
 
 const defaultNetworkConfig = {
-  uri: process.env.GASDK_NODE_HOST || 'https://public-node.testnet.rsk.co', options: { name: 'rsk-testnet', chainId: 31 }
+  uri: process.env.GASDK_NODE_HOST || 'https://public-node.testnet.rsk.co',
+  options: { name: 'rsk-testnet', chainId: 31 }
 }
 
 const defaultDidConfig = {
   privateKey: process.env.GASDK_PRIVATE_KEY,
-  networkName: 'rsk:testnet'
+  networkName: process.env.GASDK_NETWORK_NAME || 'rsk:testnet'
 }
 
 class GrowrAgent {
@@ -30,6 +44,8 @@ class GrowrAgent {
   #provider
   #wallet
   address
+  listeners = {}
+  contractListeners = {}
 
   constructor(config) {
     this.#createResolver(config.providerConfig)
@@ -47,7 +63,7 @@ class GrowrAgent {
 
   async #connectNetwork(networkConfig, privateKey = process.env.GASDK_PRIVATE_KEY) {
     try {
-      this.#provider = await (new ethers.providers.JsonRpcProvider(networkConfig.uri, networkConfig.options))
+      this.#provider = await (new ethers.JsonRpcProvider(networkConfig.uri, networkConfig.options))
       this.#wallet = await (new ethers.Wallet(privateKey, this.#provider))
       this.address = this.#wallet.address
     } catch (e) {
@@ -58,7 +74,7 @@ class GrowrAgent {
 
 
   static async createWallet(networkConfig = defaultNetworkConfig) {
-    const provider = await (new ethers.providers.JsonRpcProvider(networkConfig.uri, networkConfig.options))
+    const provider = await (new ethers.JsonRpcProvider(networkConfig.uri, networkConfig.options))
     const w = await ethers.Wallet.createRandom() //.connect(provider)
     const wallet = new ethers.Wallet(w.privateKey, provider).connect()
     return wallet
@@ -138,15 +154,26 @@ class GrowrAgent {
   async getLoan(amnt, d, pondAddress) {
     const amount = ethers.utils.parseEther(amnt) //
     const duration = Number(d)
-    return await this.borrow( amount, duration, pondAddress)
+    return await this.borrow(amount, duration, pondAddress)
   }
 
   async borrow(amount, duration, pondAddress) {
     const Pond = new ethers.Contract(pondAddress, PondABI, this.#provider)
     const tx = await Pond.connect(this.#wallet).borrow(amount, duration)
-    return tx.wait()    
+    return tx.wait()
   }
 
+  async registerListener(wsProvider = wsProviderDefaultConfig, erc20Address, walletAddress, sendFunction) {
+    if (!this.listeners[erc20Address]) {
+      this.listeners[erc20Address] = new Listener(wsProvider)
+    } else {
+      if ((await this.listeners[erc20Address].provider.listenerCount()) <= 1) {
+        this.listeners[erc20Address] = new Listener(wsProvider)
+      }
+    }
+    const listenerRegistered = this.listeners[erc20Address].registerListener(erc20Address, walletAddress, sendFunction)
+    return listenerRegistered
+  }
 }
 
 module.exports = { GrowrAgent }

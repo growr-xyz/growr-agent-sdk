@@ -18,16 +18,16 @@
   "homepage": "https://github.com/growr-xyz/growr-agent-sdk#readme",
   "dependencies": {
     "@growr/vc-json-schemas": "1.6.7",
-    "@growr/vc-json-schemas-parser": "^2.3.5",
-    "@rsksmart/rif-id-ethr-did": "^0.1.0",
-    "crypto-js": "^4.1.1",
-    "daf-selective-disclosure": "^6.0.0",
-    "did-jwt-vc": "^2.1.9",
-    "did-resolver": "^2.1.2",
-    "dotenv": "^10.0.0",
-    "ethereumjs-util": "^7.1.4",
-    "ethers": "^5.6.5",
-    "ethr-did-resolver": "^3.0.3",
-    "jesse-did-jwt": "^4.6.2"
+    "@growr/vc-json-schemas-parser": "2.3.5",
+    "@rsksmart/rif-id-ethr-did": "0.1.0",
+    "crypto-js": "4.1.1",
+    "daf-selective-disclosure": "6.0.0",
+    "did-jwt-vc": "2.1.9",
+    "did-resolver": "2.1.2",
+    "dotenv": "10.0.0",
+    "ethereumjs-util": "7.1.4",
+    "ethers": "6.4.0",
+    "ethr-did-resolver": "3.0.3",
+    "jesse-did-jwt": "4.6.2"
   }
 }
