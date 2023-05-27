@@ -23,6 +23,16 @@ const defaultDidConfig = {
   networkName: 'rsk:testnet'
 }
 
+const getERC20TransferFromData = (data) => {
+  if (data.length !== 138 || data.slice(2, 10) !== 'a9059cbb') {
+    return null
+  }
+  const receiver = `0x${data.slice(34, 74)}`
+  const bigAmount = (ethers.BigNumber.from(`0x${data.slice(74)}`)).toString()
+  const amount = ethers.utils.formatEther(bigAmount)
+  return { receiver, amount }
+}
+
 class GrowrAgent {
   didResolver
   Did
@@ -92,20 +102,22 @@ class GrowrAgent {
   }
 
   static async getInstance({
-    providerConfig = defaultProviderConfig,
+    providerConfig = { ...defaultProviderConfig.networks[0] },
     didConfig = defaultDidConfig,
     networkConfig = defaultNetworkConfig }) {
 
     try {
       if (!this.instance) {
-        this.instance = new GrowrAgent({ providerConfig })
-        this.instance.identity = await this.instance.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
-        await this.instance.#connectNetwork(networkConfig, didConfig.privateKey)
-        this.instance.wallet = this.instance.#wallet
-        this.instance.did = this.instance.identity.did.toLowerCase()
-        this.instance.address = this.instance.wallet.address
-        this.instance.provider = this.instance.getProvider()
-        this.instance.VC = new VC(this.instance.identity, this.instance.didResolver, this.instance.provider, this.instance.wallet, this.instance.did)
+        // this.instance = new GrowrAgent({ providerConfig })
+        // this.instance.identity = await this.instance.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
+        // await this.instance.#connectNetwork(networkConfig, didConfig.privateKey)
+        // this.instance.wallet = this.instance.#wallet
+        // this.instance.did = this.instance.identity.did.toLowerCase()
+        // this.instance.address = this.instance.wallet.address
+        // this.instance.provider = this.instance.getProvider()
+        // this.instance.VC = new VC(this.instance.identity, this.instance.didResolver, this.instance.provider, this.instance.wallet, this.instance.did)
+        const agent = await GrowrAgent.getAgent({ providerConfig, didConfig, networkConfig })
+        this.instance = agent
       }
       return this.instance
     } catch (e) {
@@ -138,15 +150,66 @@ class GrowrAgent {
   async getLoan(amnt, d, pondAddress) {
     const amount = ethers.utils.parseEther(amnt) //
     const duration = Number(d)
-    return await this.borrow( amount, duration, pondAddress)
+    return await this.borrow(amount, duration, pondAddress)
   }
 
   async borrow(amount, duration, pondAddress) {
     const Pond = new ethers.Contract(pondAddress, PondABI, this.#provider)
     const tx = await Pond.connect(this.#wallet).borrow(amount, duration)
-    return tx.wait()    
+    return tx.wait()
   }
 
+  async getLastBlockNumber() {
+    return await this.#provider.getBlockNumber()
+  }
+
+  async getBlock(blockNumber) {
+    return await this.#provider.getBlock(blockNumber)
+  }
+
+  async getBlockWithTransactions(blockNumber) {
+    return await this.#provider.getBlockWithTransactions(blockNumber)
+  }
+
+  async getERC20TransfersFromBlock(erc20Address, blockNumber) {
+    if (!blockNumber) {
+      blockNumber = (await this.getLastBlockNumber())
+    }
+    const block = await this.getBlockWithTransactions(blockNumber)
+    const transactions = block.transactions.filter(t => t.to === erc20Address)
+    transactions.forEach((v, i) => {
+      transactions[i] = {
+        ...getERC20TransferFromData(v.data), ...{ from: v.from.toLowerCase(), token: v.to }
+      }
+    })
+    return transactions
+  }
+
+  async getERC20TransactionsToReceiverFromBlock(erc20Address, receiver, blockNumber) {
+    if (!blockNumber) {
+      blockNumber = (await this.getLastBlockNumber())
+    }
+    const transactions = await this.getERC20TransfersFromBlock(erc20Address, blockNumber)
+    return transactions.filter(t => t.receiver === receiver)
+  }
+
+  async getERC20TransactionsToReceiverFromRange(erc20Address, receiver, blockRange) {
+    const blocks = []
+    if (!blockRange) {
+      blocks.push(await this.getLastBlockNumber())
+    }
+    if (blockRange.length > 1) {
+      for (let i = blockRange[0]; i <= blockRange[1]; i++) {
+        blocks.push(i)
+      }
+    }
+    const transactionPromises = []
+    for (const block of blocks) {
+      transactionPromises.push(await this.getERC20TransactionsToReceiverFromBlock(erc20Address, receiver, block))
+    }
+    const transactions = await Promise.all(transactionPromises)
+    return transactions.flat()
+  }
 }
 
 module.exports = { GrowrAgent }
