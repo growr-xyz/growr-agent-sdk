@@ -210,6 +210,30 @@ class GrowrAgent {
     const transactions = await Promise.all(transactionPromises)
     return transactions.flat()
   }
+
+  async getMultipleERC20TransactionsToReceiversFromRange(erc20Addresses, receivers, blockRange) {
+    const blocks = []
+    if (!blockRange) {
+      blocks.push(await this.getLastBlockNumber())
+    }
+    if (blockRange.length > 1) {
+      for (let i = blockRange[0]; i <= blockRange[1]; i++) {
+        blocks.push(i)
+      }
+    }
+    let transactions = []
+    for await (const block of blocks) {
+      const blockWithTransactions = await this.getBlockWithTransactions(block)
+      const filteredTransactions = blockWithTransactions.transactions.filter(t => erc20Addresses.includes(t.to))
+      filteredTransactions.forEach((v, i) => {
+        filteredTransactions[i] = {
+          ...getERC20TransferFromData(v.data), ...{ from: v.from.toLowerCase(), token: v.to }
+        }
+      })
+      transactions = transactions.concat(filteredTransactions)      
+    }
+    return transactions.filter(t => receivers.includes(t.receiver))
+  }
 }
 
 module.exports = { GrowrAgent }
