@@ -185,15 +185,15 @@ class GrowrAgent {
     return transactions
   }
 
-  async getERC20TransactionsToReceiverFromBlock(erc20Address, receiver, blockNumber) {
+  async getERC20TransactionsToReceiversFromBlock(erc20Address, receivers, blockNumber) {
     if (!blockNumber) {
       blockNumber = (await this.getLastBlockNumber())
     }
     const transactions = await this.getERC20TransfersFromBlock(erc20Address, blockNumber)
-    return transactions.filter(t => t.receiver === receiver)
+    return transactions.filter(t => receivers.includes(t.receiver))
   }
 
-  async getERC20TransactionsToReceiverFromRange(erc20Address, receiver, blockRange) {
+  async getERC20TransactionsToReceiversFromRange(erc20Address, receivers, blockRange) {
     const blocks = []
     if (!blockRange) {
       blocks.push(await this.getLastBlockNumber())
@@ -205,7 +205,7 @@ class GrowrAgent {
     }
     const transactionPromises = []
     for (const block of blocks) {
-      transactionPromises.push(await this.getERC20TransactionsToReceiverFromBlock(erc20Address, receiver, block))
+      transactionPromises.push(await this.getERC20TransactionsToReceiversFromBlock(erc20Address, receivers, block))
     }
     const transactions = await Promise.all(transactionPromises)
     return transactions.flat()
