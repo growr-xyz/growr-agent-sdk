@@ -217,6 +217,7 @@ class GrowrAgent {
       blocks.push(await this.getLastBlockNumber())
     }
     if (blockRange.length > 1) {
+      blockRange.sort((a, b) => a - b)
       for (let i = blockRange[0]; i <= blockRange[1]; i++) {
         blocks.push(i)
       }
@@ -227,7 +228,7 @@ class GrowrAgent {
       const filteredTransactions = blockWithTransactions.transactions.filter(t => erc20Addresses.includes(t.to))
       filteredTransactions.forEach((v, i) => {
         filteredTransactions[i] = {
-          ...getERC20TransferFromData(v.data), ...{ from: v.from.toLowerCase(), token: v.to }
+          ...getERC20TransferFromData(v.data), ...{ from: v.from.toLowerCase(), token: v.to, txid: v.hash }
         }
       })
       transactions = transactions.concat(filteredTransactions)      
