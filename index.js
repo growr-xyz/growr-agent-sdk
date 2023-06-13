@@ -108,16 +108,16 @@ class GrowrAgent {
 
     try {
       if (!this.instance) {
-        // this.instance = new GrowrAgent({ providerConfig })
-        // this.instance.identity = await this.instance.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
-        // await this.instance.#connectNetwork(networkConfig, didConfig.privateKey)
-        // this.instance.wallet = this.instance.#wallet
-        // this.instance.did = this.instance.identity.did.toLowerCase()
-        // this.instance.address = this.instance.wallet.address
-        // this.instance.provider = this.instance.getProvider()
-        // this.instance.VC = new VC(this.instance.identity, this.instance.didResolver, this.instance.provider, this.instance.wallet, this.instance.did)
-        const agent = await GrowrAgent.getAgent({ providerConfig, didConfig, networkConfig })
-        this.instance = agent
+        this.instance = new GrowrAgent({ providerConfig })
+        this.instance.identity = await this.instance.Did.createIdentity(didConfig.privateKey, didConfig.networkName)
+        await this.instance.#connectNetwork(networkConfig, didConfig.privateKey)
+        this.instance.wallet = this.instance.#wallet
+        this.instance.did = this.instance.identity.did.toLowerCase()
+        this.instance.address = this.instance.wallet.address
+        this.instance.provider = this.instance.getProvider()
+        this.instance.VC = new VC(this.instance.identity, this.instance.didResolver, this.instance.provider, this.instance.wallet, this.instance.did)
+        // const agent = await GrowrAgent.getAgent({ providerConfig, didConfig, networkConfig })
+        // this.instance = agent
       }
       return this.instance
     } catch (e) {
