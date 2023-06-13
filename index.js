@@ -102,7 +102,7 @@ class GrowrAgent {
   }
 
   static async getInstance({
-    providerConfig = { ...defaultProviderConfig.networks[0] },
+    providerConfig = defaultProviderConfig,
     didConfig = defaultDidConfig,
     networkConfig = defaultNetworkConfig }) {
 
